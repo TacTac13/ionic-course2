@@ -33,11 +33,11 @@ const routes: Routes = [
             loadChildren: () => import('./offers/new-offer/new-offer.module').then( m => m.NewOfferPageModule)
           },
           {
-            path: 'edit/:paceId',
+            path: 'edit/:placeId',
             loadChildren: () => import('./offers/edit-offer/edit-offer.module').then( m => m.EditOfferPageModule)
           },
           {
-            path: ':paceId',
+            path: ':placeId',
             loadChildren: () => import('./offers/offer-bookings/offer-bookings.module').then( m => m.OfferBookingsPageModule)
           }
         ]
