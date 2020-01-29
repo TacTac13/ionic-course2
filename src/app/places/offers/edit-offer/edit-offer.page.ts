@@ -56,7 +56,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
       this.placesService.updatePlace(this.place.id, this.form.value.title, this.form.value.description).subscribe(() => {
         loadingEl.dismiss();
         this.form.reset();
-        this.router.navigate(['/places/tab/offers']);
+        this.router.navigate(['/places/tabs/offers']);
       });
     });
   }
