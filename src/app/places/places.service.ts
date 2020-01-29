@@ -9,7 +9,7 @@ import { take, map, tap, delay } from 'rxjs/operators';
 })
 export class PlacesService {
   // tslint:disable-next-line: variable-name
-  private _places =  new BehaviorSubject<Place[]>([
+  private _places = new BehaviorSubject<Place[]>([
     new Place(
       'p1',
       'Manhattan Mansion',
@@ -42,7 +42,7 @@ export class PlacesService {
       new Date('2019-12-31'),
       'abc'
     ),
-  ]) ;
+  ]);
 
   get places() {
     return this._places.asObservable();
@@ -69,11 +69,32 @@ export class PlacesService {
       dateFrom,
       dateTo,
       this.authService.isUserId
-      );
-      // tslint:disable-next-line: align
-      return this.places.pipe(take(1), delay(1000), tap(places => {
-        this._places.next(places.concat(newPlace));
-      }));
+    );
+    // tslint:disable-next-line: align
+    return this.places.pipe(take(1), delay(1000), tap(places => {
+      this._places.next(places.concat(newPlace));
+    }));
+  }
+
+  updatePlace(placeId: string, title: string, description: string) {
+    return this.places.pipe(take(1),
+    delay(1000),
+    tap(places => {
+      const udatedPlaceIndex = places.findIndex(pl => pl.id === placeId);
+      const upatedPlaces = [...places];
+      const oldPlace = upatedPlaces[udatedPlaceIndex];
+      upatedPlaces[udatedPlaceIndex] = new Place(
+        oldPlace.id,
+        title,
+        description,
+        oldPlace.imageUrl,
+        oldPlace.price,
+        oldPlace.availableFrom,
+        oldPlace.availableTo,
+        oldPlace.userId
+        );
+      this._places.next(upatedPlaces);
+    }));
   }
 
   constructor(private authService: AuthService) { }
