@@ -3,11 +3,15 @@ import { Place } from './place.model';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject } from 'rxjs';
 import { take, map, tap, delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlacesService {
+
+  constructor(private authService: AuthService, private http: HttpClient) { }
+
   // tslint:disable-next-line: variable-name
   private _places = new BehaviorSubject<Place[]>([
     new Place(
@@ -70,10 +74,16 @@ export class PlacesService {
       dateTo,
       this.authService.isUserId
     );
+    return this.http.post(
+      'https://ionic-angular-course-f120c.firebaseio.com/offered-places.json',
+      {...newPlace, id: null})
+      .pipe(tap(resData => {
+        console.log(resData);
+      }));
     // tslint:disable-next-line: align
-    return this.places.pipe(take(1), delay(1000), tap(places => {
-      this._places.next(places.concat(newPlace));
-    }));
+    // return this.places.pipe(take(1), delay(1000), tap(places => {
+    //   this._places.next(places.concat(newPlace));
+    // }));
   }
 
   updatePlace(placeId: string, title: string, description: string) {
@@ -97,5 +107,4 @@ export class PlacesService {
     }));
   }
 
-  constructor(private authService: AuthService) { }
 }
