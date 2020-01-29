@@ -49,16 +49,24 @@ export class EditOfferPage implements OnInit, OnDestroy {
     if (!this.form.valid) {
       return;
     }
-    this.loaderCtrl.create({
-      message: 'Updating place...'
-    }).then(loadingEl => {
-      loadingEl.present();
-      this.placesService.updatePlace(this.place.id, this.form.value.title, this.form.value.description).subscribe(() => {
-        loadingEl.dismiss();
-        this.form.reset();
-        this.router.navigate(['/places/tabs/offers']);
+    this.loaderCtrl
+      .create({
+        message: 'Updating place...'
+      })
+      .then(loadingEl => {
+        loadingEl.present();
+        this.placesService
+          .updatePlace(
+            this.place.id,
+            this.form.value.title,
+            this.form.value.description
+          )
+          .subscribe(() => {
+            loadingEl.dismiss();
+            this.form.reset();
+            this.router.navigate(['/places/tabs/offers']);
+          });
       });
-    });
   }
 
   ngOnDestroy() {
