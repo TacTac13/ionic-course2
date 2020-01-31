@@ -63,10 +63,18 @@ export class BookingService {
       }));
   }
 
-  cancelBooking(bookingId: string, ) {
-    return this._bookings.pipe(take(1), delay(1000), tap(bookings => {
-      this._bookings.next(bookings.filter(b => b.id !== bookingId));
-    }));
+  cancelBooking(bookingId: string) {
+    return this.http.delete(`https://ionic-angular-course-f120c.firebaseio.com/bookings/${bookingId}.json`)
+      .pipe(switchMap(() => {
+        return this.bookings;
+      }),
+      take(1),
+      tap(bookings => {
+        this._bookings.next(bookings.filter(b => b.id !== bookingId));
+      }));
+    // return this._bookings.pipe(take(1), delay(1000), tap(bookings => {
+    //   this._bookings.next(bookings.filter(b => b.id !== bookingId));
+    // }));
   }
 
   fetchBookings() {
@@ -93,7 +101,7 @@ export class BookingService {
           }
         }
         return bookings;
-      }), tap (bookings => {
+      }), tap(bookings => {
         this._bookings.next(bookings);
       }));
   }
