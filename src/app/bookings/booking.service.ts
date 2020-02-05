@@ -41,26 +41,31 @@ export class BookingService {
     dateTo: Date
   ) {
     let generatedId: string;
-    const newBooking = new Booking(
-      Math.random().toString(),
-      placeId,
-      this.authService.isUserId,
-      placeTitle,
-      placeImage,
-      firstName,
-      lastName,
-      guestNumber,
-      dateFrom,
-      dateTo
-    );
-    return this.http.post<{ name: string }>('https://ionic-angular-course-f120c.firebaseio.com/bookings.json', { ...newBooking, id: null })
-      .pipe(switchMap(resData => {
-        generatedId = resData.name;
-        return this.bookings;
-      }), take(1), tap(bookings => {
-        newBooking.id = generatedId;
-        this._bookings.next(bookings.concat(newBooking));
-      }));
+    let newBooking: Booking;
+    return this.authService.isUserId.pipe(take(1), switchMap(userId => {
+      if (userId) {
+        throw new Error('No user id found!');
+      }
+      newBooking = new Booking(
+        Math.random().toString(),
+        placeId,
+        userId,
+        placeTitle,
+        placeImage,
+        firstName,
+        lastName,
+        guestNumber,
+        dateFrom,
+        dateTo
+      );
+      return this.http.post<{ name: string }>('https://ionic-angular-course-f120c.firebaseio.com/bookings.json', { ...newBooking, id: null });
+    }), switchMap(resData => {
+      generatedId = resData.name;
+      return this.bookings;
+    }), take(1), tap(bookings => {
+      newBooking.id = generatedId;
+      this._bookings.next(bookings.concat(newBooking));
+    }));
   }
 
   cancelBooking(bookingId: string) {
@@ -68,10 +73,10 @@ export class BookingService {
       .pipe(switchMap(() => {
         return this.bookings;
       }),
-      take(1),
-      tap(bookings => {
-        this._bookings.next(bookings.filter(b => b.id !== bookingId));
-      }));
+        take(1),
+        tap(bookings => {
+          this._bookings.next(bookings.filter(b => b.id !== bookingId));
+        }));
     // return this._bookings.pipe(take(1), delay(1000), tap(bookings => {
     //   this._bookings.next(bookings.filter(b => b.id !== bookingId));
     // }));

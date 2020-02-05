@@ -122,32 +122,40 @@ export class PlacesService {
   }
 
   addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date, location: PlaceLocation, imageUrl: string) {
-    let generatedId: string;
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      imageUrl,
-      price,
-      dateFrom,
-      dateTo,
-      this.authService.isUserId,
-      location
-    );
-    return this.http.post<{ name: string }>(
-      'https://ionic-angular-course-f120c.firebaseio.com/offered-places.json',
-      { ...newPlace, id: null })
-      .pipe(
-        switchMap(resData => {
-          generatedId = resData.name;
-          return this.places;
-        }),
-        take(1),
-        tap(places => {
-          newPlace.id = generatedId;
-          this._places.next(places.concat(newPlace));
-        })
+    let generatedId: string; let newPlace: Place;
+    return this.authService.isUserId.pipe(take(1), switchMap(userId => {
+      if (!userId) {
+        throw new Error('No user found!');
+      }
+      newPlace = new Place(
+        Math.random().toString(),
+        title,
+        description,
+        imageUrl,
+        price,
+        dateFrom,
+        dateTo,
+        userId,
+        location
       );
+      return this.http
+        .post<{ name: string }>(
+          'https://ionic-angular-course-f120c.firebaseio.com/offered-places.json',
+          {
+            ...newPlace,
+            id: null
+          }
+        );
+    }), switchMap(resData => {
+      generatedId = resData.name;
+      return this.places;
+    }),
+      take(1),
+      tap(places => {
+        newPlace.id = generatedId;
+        this._places.next(places.concat(newPlace));
+      })
+    );
     // tslint:disable-next-line: align
     // return this.places.pipe(take(1), delay(1000), tap(places => {
     //   this._places.next(places.concat(newPlace));
@@ -159,8 +167,8 @@ export class PlacesService {
     uploadData.append('image', image);
 
     return this.http
-    .post<{ imageUrl: string, imagePath: string }>
-    ('https://us-central1-ionic-angular-course-f120c.cloudfunctions.net/storeImage', uploadData);
+      .post<{ imageUrl: string, imagePath: string }>
+      ('https://us-central1-ionic-angular-course-f120c.cloudfunctions.net/storeImage', uploadData);
   }
 
   updatePlace(placeId: string, title: string, description: string) {
