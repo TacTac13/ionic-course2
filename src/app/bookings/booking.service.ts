@@ -42,57 +42,81 @@ export class BookingService {
   ) {
     let generatedId: string;
     let newBooking: Booking;
-    return this.authService.isUserId.pipe(take(1), switchMap(userId => {
-      if (!userId) {
-        throw new Error('No user id found!');
-      }
-      newBooking = new Booking(
-        Math.random().toString(),
-        placeId,
-        userId,
-        placeTitle,
-        placeImage,
-        firstName,
-        lastName,
-        guestNumber,
-        dateFrom,
-        dateTo
-      );
-      return this.http.post<{ name: string }>('https://ionic-angular-course-f120c.firebaseio.com/bookings.json', { ...newBooking, id: null });
-    }), switchMap(resData => {
-      generatedId = resData.name;
-      return this.bookings;
-    }), take(1), tap(bookings => {
-      newBooking.id = generatedId;
-      this._bookings.next(bookings.concat(newBooking));
-    }));
-  }
-
-  cancelBooking(bookingId: string) {
-    return this.http.delete(`https://ionic-angular-course-f120c.firebaseio.com/bookings/${bookingId}.json`)
-      .pipe(switchMap(() => {
-        return this.bookings;
-      }),
-        take(1),
-        tap(bookings => {
-          this._bookings.next(bookings.filter(b => b.id !== bookingId));
-        }));
-    // return this._bookings.pipe(take(1), delay(1000), tap(bookings => {
-    //   this._bookings.next(bookings.filter(b => b.id !== bookingId));
-    // }));
-  }
-
-  fetchBookings() {
+    let fetchedUserId: string;
     return this.authService.isUserId.pipe(
       take(1),
       switchMap(userId => {
         if (!userId) {
           throw new Error('No user id found!');
         }
-        return this.http.get<{ [key: string]: BookingData }>(
-          `https://ionic-angular-course-f120c.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${userId}"`
+        fetchedUserId = userId;
+        return this.authService.token;
+      }),
+      take(1),
+      switchMap(token => {
+        newBooking = new Booking(
+          Math.random().toString(),
+          placeId,
+          fetchedUserId,
+          placeTitle,
+          placeImage,
+          firstName,
+          lastName,
+          guestNumber,
+          dateFrom,
+          dateTo
         );
-      }), map(bookingData => {
+        return this.http.post<{ name: string }>(`https://ionic-angular-course-f120c.firebaseio.com/bookings.json?auth=${token}`, { ...newBooking, id: null });
+      }),
+      take(1),
+      switchMap(resData => {
+        generatedId = resData.name;
+        return this.bookings;
+      }), take(1), tap(bookings => {
+        newBooking.id = generatedId;
+        this._bookings.next(bookings.concat(newBooking));
+      }));
+  }
+
+  cancelBooking(bookingId: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.delete(`https://ionic-angular-course-f120c.firebaseio.com/bookings/${bookingId}.json?auth=${token}`);
+      }),
+      switchMap(() => {
+        return this.bookings;
+      }),
+      take(1),
+      tap(bookings => {
+        this._bookings.next(bookings.filter(b => b.id !== bookingId));
+      }));
+
+    // return this._bookings.pipe(take(1), delay(1000), tap(bookings => {
+    //   this._bookings.next(bookings.filter(b => b.id !== bookingId));
+    // }));
+  }
+
+  fetchBookings() {
+    let fetchedUserId: string;
+    return this.authService.isUserId.pipe(
+      take(1),
+      switchMap(userId => {
+        if (!userId) {
+          throw new Error('No user id found!');
+        }
+        fetchedUserId = userId;
+        console.log(userId);
+        return this.authService.token;
+      }),
+      take(1),
+      switchMap(token => {
+        return this.http.get<{ [key: string]: BookingData }>(
+          `https://ionic-angular-course-f120c.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${fetchedUserId}"&auth=${token}`
+        );
+      }),
+      map(bookingData => {
+        console.log(bookingData);
         const bookings = [];
         for (const key in bookingData) {
           if (bookingData.hasOwnProperty(key)) {
