@@ -121,14 +121,13 @@ export class PlacesService {
       );
   }
 
-  addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date, location: PlaceLocation) {
+  addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date, location: PlaceLocation, imageUrl: string) {
     let generatedId: string;
     const newPlace = new Place(
       Math.random().toString(),
       title,
       description,
-      // tslint:disable-next-line: max-line-length
-      'https://patch.com/img/cdn20/users/22965231/20190709/105521/styles/patch_image/public/midtown-manhattan-new-york-city-new-york-shutterstock-412523491-1___09105440812.jpg',
+      imageUrl,
       price,
       dateFrom,
       dateTo,
@@ -153,6 +152,15 @@ export class PlacesService {
     // return this.places.pipe(take(1), delay(1000), tap(places => {
     //   this._places.next(places.concat(newPlace));
     // }));
+  }
+
+  uploadImage(image: File) {
+    const uploadData = new FormData();
+    uploadData.append('image', image);
+
+    return this.http
+    .post<{ imageUrl: string, imagePath: string }>
+    ('https://us-central1-ionic-angular-course-f120c.cloudfunctions.net/storeImage', uploadData);
   }
 
   updatePlace(placeId: string, title: string, description: string) {
