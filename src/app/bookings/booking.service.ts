@@ -43,7 +43,7 @@ export class BookingService {
     let generatedId: string;
     let newBooking: Booking;
     return this.authService.isUserId.pipe(take(1), switchMap(userId => {
-      if (userId) {
+      if (!userId) {
         throw new Error('No user id found!');
       }
       newBooking = new Booking(
@@ -83,10 +83,14 @@ export class BookingService {
   }
 
   fetchBookings() {
-    return this.http.get<{ [key: string]: BookingData }>(
-      `https://ionic-angular-course-f120c.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${this.authService.isUserId}"`
-    )
-      .pipe(map(bookingData => {
+    return this.authService.isUserId.pipe(switchMap(userId => {
+      if (!userId) {
+        throw new Error('No user id found!');
+      }
+      return this.http.get<{ [key: string]: BookingData }>(
+        `https://ionic-angular-course-f120c.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${userId}"`
+      );
+    }), map(bookingData => {
         const bookings = [];
         for (const key in bookingData) {
           if (bookingData.hasOwnProperty(key)) {
